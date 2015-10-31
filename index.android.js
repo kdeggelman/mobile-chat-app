@@ -1,6 +1,8 @@
 'use strict';
 
 var React = require('react-native');
+window.navigator.userAgent = "react-native";
+var io = require("socket.io-client/socket.io");
 var {
   AppRegistry,
   StyleSheet,
@@ -21,6 +23,15 @@ var ChatBox = React.createClass({
     };
   },
   componentDidMount: function() {
+    // Must specifiy 'jsonp: false' since react native doesn't provide the dom
+    // and thus wouldn't support creating an iframe/script tag
+    // FIXME: Should I store the socket on the state?
+    this.socket = io('http://localhost:3000', {
+      jsonp: false
+    });
+    this.socket.on('chat message', (msg) =>{
+      this.addMessage(msg);
+    });
   },
   addMessage: function(message) {
     console.log("Adding a new message " + message);
@@ -34,6 +45,7 @@ var ChatBox = React.createClass({
   handleMessageSubmit: function(message) {
     console.log("Submitting message " + message);
     this.addMessage(message);
+    this.socket.emit('chat message', message);
   },
   render: function() {
     return (
